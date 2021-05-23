@@ -1,0 +1,3 @@
+[submodule "submodules/servo_controller"]
+	path = submodules/servo_controller
+	url = https://github.com/aleopardstail/PCA9685_Servo_Controller
