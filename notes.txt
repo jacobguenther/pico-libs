@@ -1,0 +1,21 @@
+serial comm
+minicom -b 115200 -o -D /dev/ttyACM0
+
+
+remember to update udev rules so openocd has permission to access usb
+
+start openocd
+openocd -f interface/picoprobe.cfg -f target/rp2040.cfg -s tcl
+
+upload file
+openocd -f interface/picoprobe.cfg -f target/rp2040.cfg -c "program build/pico-mpu6050-driver-cpp.elf verify reset exit"
+
+
+
+
+connect gdb with openocd
+gdb-multiarch pico-mpu6050-driver-cpp.elf
+target extended-remote localhost:3333
+load
+monitor reset init
+continue
