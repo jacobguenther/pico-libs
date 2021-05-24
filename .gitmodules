@@ -1,3 +1,6 @@
-[submodule "submodules/servo_controller"]
-	path = submodules/servo_controller
-	url = https://github.com/aleopardstail/PCA9685_Servo_Controller
+[submodule "submodules/arduino"]
+	path = submodules/arduino
+	url = https://github.com/pschatzmann/pico-arduino
+[submodule "submodules/pico-servo"]
+	path = submodules/pico-servo
+	url = https://github.com/irishpatrick/pico-servo
