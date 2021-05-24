@@ -12,9 +12,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-pico_enable_stdio_usb(${PROJECT_NAME} 0)
-pico_enable_stdio_uart(${PROJECT_NAME} 1)
-
 set(EXAMPLES_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples/mpu-6050/src)
 set(MPU_DRIVER_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/mpu-6050-driver/src)
 
@@ -33,6 +30,9 @@ set(SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+pico_enable_stdio_usb(${PROJECT_NAME} 0)
+pico_enable_stdio_uart(${PROJECT_NAME} 1)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
