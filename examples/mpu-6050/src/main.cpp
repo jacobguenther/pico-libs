@@ -3,6 +3,8 @@
 // Date Created: 15 May 2021
 // License: AGPLv3
 
+#include <memory>
+
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 
@@ -11,6 +13,10 @@
 
 #include "median_filter.hpp"
 #include "complementary_filter.hpp"
+
+extern "C" {
+	#include "pico_servo.h"
+}
 
 int main() {
 	stdio_init_all();
@@ -22,6 +28,13 @@ int main() {
 	bi_decl(bi_program_version_string("0.0.1"));
 	bi_decl(bi_program_url("https://github.com/jacobguenther/pico-mpu-6050-driver-cpp"));
 	bi_decl(bi_program_feature("License AGPLv3"));
+
+	const uint8_t pitch_servo_pin = 6;
+	servo_init();
+	servo_clock_auto();
+	servo_attach(pitch_servo_pin);
+
+
 
 	const uint8_t power_pin = 11;
 	gpio_init(power_pin);
@@ -39,7 +52,6 @@ int main() {
 	gpio_pull_up(scl_pin);
 
 	const uint8_t mpu_interrupt_pin = 10;
-
 
 
 	// tuning settings
@@ -72,6 +84,9 @@ int main() {
 	MedianFilter<mean_filter_size> accel_z_filter;
 	ComplementaryFilter comp_filter = ComplementaryFilter(dt, gyro_bias);
 
+	float pitch;
+	float roll;
+
 	// auto last_mpu_update = get_absolute_time();
 	while (true) {
 		// auto now = get_absolute_time();
@@ -97,8 +112,11 @@ int main() {
 				accel_z_filter.get_median()
 			};
 			comp_filter.update(filtered_accel, gyro);
-			auto [pitch, roll] = comp_filter.get_filtered_angle();
+			std::tie(pitch, roll) = comp_filter.get_filtered_angle();
 			printf("pitch: %.2f roll: %.2f\n", pitch, roll);
 		}
+
+
+		servo_move_to(pitch_servo_pin, pitch + 90);
 	}
 }
