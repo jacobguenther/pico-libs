@@ -1,0 +1,83 @@
+; File: main.cpp
+; Author: Jacob Guenther
+; Date Created: 15 May 2021
+; License: AGPLv3
+
+.program keyboard
+
+.define PUBLIC ROW_COUNT 3
+.define PUBLIC COL_COUNT 3
+
+.define COL_0_LOW 0b11110
+.define COL_1_LOW 0b11101
+.define COL_2_LOW 0b11011
+.define COL_3_LOW 0b10111
+.define COL_4_LOW 0b01111
+
+% c-sdk {
+
+// Helper function (for use in C program) to initialize this PIO program
+void keyboard_program_init(PIO pio, uint sm, uint offset, uint col_start, uint col_count, uint row_start, uint row_count) {
+		for (uint8_t row = 0; row < row_count; row++) {
+			uint8_t row_pin = row_start + row;
+			gpio_init(row_pin);
+			gpio_set_dir(row_pin, GPIO_IN);
+			gpio_pull_up(row_pin);
+		}
+
+		for (uint8_t col = 0; col < col_count; col++) {
+			uint8_t col_pin = col_start + col;
+			pio_gpio_init(pio, col_pin);
+		}
+		pio_sm_set_consecutive_pindirs(pio, sm, col_start, col_count, true);
+
+		pio_sm_config config = keyboard_program_get_default_config(offset);
+		sm_config_set_set_pins(&config, col_start, col_count);
+		sm_config_set_out_pins(&config, col_start, col_count);
+		sm_config_set_in_pins(&config, row_start);
+		sm_config_set_in_shift(&config, false, false, 0);
+		sm_config_set_fifo_join(&config, PIO_FIFO_JOIN_RX);
+		pio_sm_set_config(pio, sm, &config);
+
+		pio_sm_init(pio, sm, offset, &config);
+}
+
+%}
+
+start:
+	set X, 0  ; Initialize scratch register X to be filled with ones
+	mov X, ~X ; Ones indicate open switches.
+	jmp poll
+
+key_changed:
+	mov X, Y ; copy current state(scratch register Y) into previous state(scratch register X)
+	push
+
+.wrap_target
+poll:
+	mov ISR, NULL
+
+	set PINS, COL_0_LOW [31] ; set column 0 to low all others to high
+	nop [31]                 ; wait for signal to stabilize
+	in PINS, ROW_COUNT       ; read column 0 to the ISR
+
+	set PINS, COL_1_LOW [31]
+	nop [31]
+	in PINS, ROW_COUNT
+
+	set PINS, COL_2_LOW [31]
+	nop [31]
+	in PINS, ROW_COUNT
+
+	// set PINS, COL_3_LOW [31]
+	// in PINS, ROW_COUNT
+
+	// set PINS, COL_4_LOW [31]
+	// in PINS, ROW_COUNT
+
+	mov Y, ~ISR ; copy ISR into scratch register Y
+				; flip the bits while copying because the signal is active low
+
+	jmp X != Y, key_changed  ; compare current state Y to previous state X
+	.wrap
+	

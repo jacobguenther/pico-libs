@@ -12,24 +12,30 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-set(EXAMPLES_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples/mpu-6050/src)
+set(EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 set(MPU_DRIVER_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/mpu-6050-driver/src)
+set(KEYBOARD_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/keyboard/src)
 
 include_directories(${EXAMPLES_SRC_DIR})
 include_directories(${MPU_DRIVER_SRC_DIR})
+include_directories(${KEYBOARD_SRC_DIR})
 
 set(SOURCES
-	${EXAMPLES_SRC_DIR}/main.cpp
+	${EXAMPLES_DIR}/mpu-6050/main.cpp
 
 	${MPU_DRIVER_SRC_DIR}/mpu6050.hpp
 	${MPU_DRIVER_SRC_DIR}/mpu6050.cpp
 	${MPU_DRIVER_SRC_DIR}/mpu6050_config.hpp
-	${MPU_DRIVER_SRC_DIR}/circular_buffer.hpp
 	${MPU_DRIVER_SRC_DIR}/complementary_filter.hpp
 	${MPU_DRIVER_SRC_DIR}/median_filter.hpp
+
+	${KEYBOARD_SRC_DIR}/keyboard.hpp
+	${KEYBOARD_SRC_DIR}/pio_keyboard.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+pico_generate_pio_header(${PROJECT_NAME} ${KEYBOARD_SRC_DIR}/keyboard_program.pio)
 
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 1)
@@ -50,9 +56,10 @@ target_link_libraries(${PROJECT_NAME}
 	hardware_i2c
 	hardware_pwm
 	hardware_clocks
+	hardware_pio
 )
 
 
-add_compile_options(
-	-Wall -Wextra -Wpedantic
+target_compile_options(
+	${PROJECT_NAME} PRIVATE -Wall #-Wextra -pedantic -Weffc++
 )
