@@ -1,0 +1,37 @@
+add_executable(screen_example)
+target_sources(screen_example PRIVATE main.cpp)
+
+target_link_libraries(screen_example PRIVATE
+	pico_stdlib
+	hardware_i2c
+	hagl
+	hagl_hal
+)
+
+target_compile_definitions(screen_example PRIVATE
+	HAGL_HAL_USE_DOUBLE_BUFFER
+
+	MIPI_DISPLAY_SPI_CLOCK_SPEED_HZ=62000000
+	MIPI_DISPLAY_PIN_CLK=2
+	MIPI_DISPLAY_PIN_MOSI=3
+	MIPI_DISPLAY_PIN_RST=4
+
+	MIPI_DISPLAY_PIN_CS=5
+	MIPI_DISPLAY_PIN_DC=6
+
+	MIPI_DISPLAY_PIN_MISO=-1
+
+	MIPI_DISPLAY_PIXEL_FORMAT=MIPI_DCS_PIXEL_FORMAT_16BIT
+	MIPI_DISPLAY_ADDRESS_MODE=MIPI_DCS_ADDRESS_MODE_BGR|MIPI_DCS_ADDRESS_MODE_FLIP_X|MIPI_DCS_ADDRESS_MODE_MIRROR_X|MIPI_DCS_ADDRESS_MODE_FLIP_Y|MIPI_DCS_ADDRESS_MODE_MIRROR_Y
+
+	MIPI_DISPLAY_WIDTH=128
+	MIPI_DISPLAY_HEIGHT=128
+	MIPI_DISPLAY_OFFSET_X=2
+	MIPI_DISPLAY_OFFSET_Y=3
+	MIPI_DISPLAY_INVERT=0
+)
+
+pico_enable_stdio_usb(screen_example 0)
+pico_enable_stdio_uart(screen_example 1)
+
+pico_add_extra_outputs(screen_example)

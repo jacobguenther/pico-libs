@@ -6,24 +6,24 @@
 #ifndef COMPLEMENTARY_FILTER_HPP
 #define COMPLEMENTARY_FILTER_HPP
 
-#define RAD_2_DEG 57.295779513
+constexpr float RAD_2_DEG{57.295779513F};
+constexpr float DEFULAT_DT{1.0F/60.0F};
+constexpr float DEFAULT_GYRO_BIAS{0.975F};
 
 #include "pico/stdlib.h"
 #include "pico/types.h"
 
-#include <array>
-#include <algorithm>
-#include <optional>
-#include <cmath>
+#include <algorithm> // nth_element
+#include <array>     // array
+#include <cmath>     // atan2
 
 class ComplementaryFilter {
 public:
-	ComplementaryFilter(float dt=1.0f/60.0f, float gyro_bias=0.975f)
+	ComplementaryFilter()=default;
+	ComplementaryFilter(float dt, float gyro_bias)
 		: _dt{dt}
 		, _gyro_bias{gyro_bias}
-		, _accel_bias{1.0f - gyro_bias}
-		, _pitch{0.0f}
-		, _roll{0.0f}
+		, _accel_bias{1.0F - gyro_bias}
 	{}
 	~ComplementaryFilter()=default;
 
@@ -32,20 +32,21 @@ public:
 	ComplementaryFilter& operator=(const ComplementaryFilter&)=delete;
 	ComplementaryFilter& operator=(const ComplementaryFilter&&)=delete;
 
-	void update(std::array<int16_t, 3> &accel, std::array<float, 3> &gyro) {
-		int16_t ax = accel[0];
-		int16_t ay = accel[1];
-		int32_t ax2 = ax*ax;
-		int32_t ay2 = ay*ay;
-		int32_t az2 = accel[2]*accel[2];
+	void update(const std::array<int16_t, 3> &accel, const std::array<float, 3> &gyro) {
+		const int16_t accel_x{accel[0]};
+		const int16_t accel_y{accel[1]};
+		const int16_t accel_z{accel[2]};
+		const int32_t accel_x_squared{accel_x*accel_x};
+		const int32_t accel_y_squared{accel_y*accel_y};
+		const int32_t accel_z_squared{accel_z*accel_z};
 
-		float accel_angle_pitch = std::atan2(
-				static_cast<float>(ax),
-				std::sqrt(static_cast<float>(ay2 + az2))
+		const float accel_angle_pitch = std::atan2(
+				static_cast<float>(accel_x),
+				std::sqrt(static_cast<float>(accel_y_squared + accel_z_squared))
 			) * RAD_2_DEG;
-		float accel_angle_roll = std::atan2(
-				static_cast<float>(ay),
-				std::sqrt(static_cast<float>(ax2 + az2))
+		const float accel_angle_roll = std::atan2(
+				static_cast<float>(accel_y),
+				std::sqrt(static_cast<float>(accel_x_squared + accel_z_squared))
 			) * RAD_2_DEG;
 
 		_pitch = _gyro_bias * (_pitch - gyro[1]*_dt)
@@ -53,17 +54,17 @@ public:
 		_roll = _gyro_bias * (_roll + gyro[0]*_dt)
 			+ _accel_bias * accel_angle_roll;
 	}
-	std::tuple<float, float> get_filtered_angle() {
+	std::tuple<float, float> get_filtered_angles() {
 		return {_pitch, _roll};
 	}
 private:
-	float _dt;
+	float _dt{DEFULAT_DT};
 
-	float _gyro_bias;
-	float _accel_bias;
+	float _gyro_bias{DEFAULT_GYRO_BIAS};
+	float _accel_bias{1.0F - _gyro_bias};
 
-	float _pitch;
-	float _roll;
+	float _pitch{0.0F};
+	float _roll{0.0F};
 };
 
 #endif

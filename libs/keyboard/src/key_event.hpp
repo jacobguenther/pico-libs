@@ -15,7 +15,7 @@ enum KeyEventE {
 
 struct KeyEvent {
 	KeyEventE event_type;
-	uint8_t id;
+	uint8_t key_index;
 };
 
 #endif

@@ -1,4 +1,4 @@
-; File: main.cpp
+; File: keyboard_program.pio
 ; Author: Jacob Guenther
 ; Date Created: 15 May 2021
 ; License: AGPLv3
@@ -18,6 +18,7 @@
 
 // Helper function (for use in C program) to initialize this PIO program
 void keyboard_program_init(PIO pio, uint sm, uint offset, uint col_start, uint col_count, uint row_start, uint row_count) {
+		// Initialize row pins as pulled up gpio in pins
 		for (uint8_t row = 0; row < row_count; row++) {
 			uint8_t row_pin = row_start + row;
 			gpio_init(row_pin);
@@ -25,17 +26,20 @@ void keyboard_program_init(PIO pio, uint sm, uint offset, uint col_start, uint c
 			gpio_pull_up(row_pin);
 		}
 
+		// Initialize col pins as pio gpio output pins 
 		for (uint8_t col = 0; col < col_count; col++) {
 			uint8_t col_pin = col_start + col;
 			pio_gpio_init(pio, col_pin);
 		}
 		pio_sm_set_consecutive_pindirs(pio, sm, col_start, col_count, true);
 
+		// Configure the state machine to use the row and col pins
 		pio_sm_config config = keyboard_program_get_default_config(offset);
 		sm_config_set_set_pins(&config, col_start, col_count);
 		sm_config_set_out_pins(&config, col_start, col_count);
 		sm_config_set_in_pins(&config, row_start);
 		sm_config_set_in_shift(&config, false, false, 0);
+		// Join the RX and TX FIFOs to be used only for RX
 		sm_config_set_fifo_join(&config, PIO_FIFO_JOIN_RX);
 		pio_sm_set_config(pio, sm, &config);
 

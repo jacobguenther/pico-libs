@@ -4,3 +4,9 @@
 [submodule "submodules/pico-servo"]
 	path = submodules/pico-servo
 	url = https://github.com/irishpatrick/pico-servo
+[submodule "submodules/hagl_pico_mipi"]
+	path = submodules/hagl_pico_mipi
+	url = https://github.com/tuupola/hagl_pico_mipi
+[submodule "submodules/hagl"]
+	path = submodules/hagl
+	url = https://github.com/tuupola/hagl.git
